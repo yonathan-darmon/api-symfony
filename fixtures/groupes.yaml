@@ -1,0 +1,4 @@
+App\Entity\Groupe:
+  groupe{1..10}:
+    name: '<word()>'
+    createdAt: '<DateTimeImmutable(<dateTime()>)>'

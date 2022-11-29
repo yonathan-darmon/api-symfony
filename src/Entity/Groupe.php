@@ -3,13 +3,28 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Repository\GroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: GroupeRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations:[
+        new GetCollection(
+            normalizationContext:['groups'=>['groupe.getcollection.read']]
+        ),
+        new GetCollection(
+            uriTemplate:'/groupe/user',
+            normalizationContext:['groups'=>['groupe.user.getcollection.read']]
+            
+        )
+    ]
+)]
+
 class Groupe
 {
     #[ORM\Id]
@@ -18,15 +33,17 @@ class Groupe
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['groupe.getcollection.read', 'groupe.user.getcollection.read'])]
     private ?string $name = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\OneToMany(mappedBy: 'groupe', targetEntity: User::class)]
+    #[Groups(['groupe.user.getcollection.read'])]
     private Collection $user;
 
     public function __construct()
