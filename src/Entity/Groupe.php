@@ -22,6 +22,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
             normalizationContext:['groups'=>['groupe.user.getcollection.read']]
             
         )
+        
     ]
 )]
 
@@ -33,7 +34,7 @@ class Groupe
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['groupe.getcollection.read', 'groupe.user.getcollection.read'])]
+    #[Groups(['groupe.getcollection.read', 'groupe.user.getcollection.read', 'user.getdetail.read'])]
     private ?string $name = null;
 
     #[ORM\Column]

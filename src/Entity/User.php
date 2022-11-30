@@ -5,6 +5,8 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Link;
 use App\Controller\UserController;
 use App\Repository\UserRepository;
 use DateTimeImmutable;
@@ -23,7 +25,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Post(
             // controller: UserController::class,
             denormalizationContext: ['groups' => ['user.write']]
+        ),
+        new Get(
+            normalizationContext: ['groups' => ['user.getdetail.read']]
         )
+
     ]
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -34,7 +40,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
-    #[Groups(['user.write'])]
+    #[Groups(['user.write', 'user.getdetail.read'])]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -48,14 +54,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\ManyToOne(inversedBy: 'user')]
+    #[Groups(['user.getdetail.read'])]
     private ?Groupe $groupe = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user.getcollection.read', 'user.write', 'groupe.user.getcollection.read'])]
+    #[Groups(['user.getcollection.read', 'user.write', 'groupe.user.getcollection.read', 'user.getdetail.read'])]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user.getcollection.read', 'user.write', 'groupe.user.getcollection.read'])]
+    #[Groups(['user.getcollection.read', 'user.write', 'groupe.user.getcollection.read', 'user.getdetail.read'])]
     private ?string $lastname = null;
 
     #[ORM\Column]
@@ -211,19 +218,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     #[ORM\PrePersist]
     #[ORM\PreUpdate]
-    public function timeIsRunningOut(){
-        $dateNow= new DateTimeImmutable("now");
+    public function timeIsRunningOut()
+    {
+        $dateNow = new DateTimeImmutable("now");
         $this->setUpdatedAt($dateNow);
-        
-        if($this->createdAt==null){
+
+        if ($this->createdAt == null) {
             $this->setCreatedAt($dateNow);
         }
     }
     #[ORM\PrePersist]
-    public function hashmdp(){
-            $password=password_hash($this->plainpassword,PASSWORD_DEFAULT);
-            $this->setPassword($password);
-        
+    public function hashmdp()
+    {
+        $password = password_hash($this->plainpassword, PASSWORD_DEFAULT);
+        $this->setPassword($password);
     }
-
 }
