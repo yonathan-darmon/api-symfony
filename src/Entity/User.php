@@ -7,8 +7,11 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
 use App\Controller\UserController;
+use App\DataFixtures\Processor\UserProcessor;
 use App\Repository\UserRepository;
+use App\State\UserStateProcessor;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -23,11 +26,15 @@ use Symfony\Component\Serializer\Annotation\Groups;
             normalizationContext: ['groups' => ['user.getcollection.read']]
         ),
         new Post(
-            // controller: UserController::class,
+            processor: UserStateProcessor::class,
             denormalizationContext: ['groups' => ['user.write']]
         ),
         new Get(
             normalizationContext: ['groups' => ['user.getdetail.read']]
+        ),
+        new Patch(
+            security: "object == user and previous_object == user",
+            denormalizationContext: ['groups' => ['user.patch.write']]
         )
 
     ]
@@ -40,7 +47,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
-    #[Groups(['user.write', 'user.getdetail.read'])]
+    #[Groups(['user.write', 'user.getdetail.read','user.patch.write'])]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -50,7 +57,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
-    #[Groups(['user.write'])]
+    #[Groups(['user.write','user.patch.write'])]
     private ?string $password = null;
 
     #[ORM\ManyToOne(inversedBy: 'user')]
@@ -58,11 +65,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?Groupe $groupe = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user.getcollection.read', 'user.write', 'groupe.user.getcollection.read', 'user.getdetail.read'])]
+    #[Groups(['user.getcollection.read', 'user.write', 'groupe.user.getcollection.read', 'user.getdetail.read','user.patch.write'])]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user.getcollection.read', 'user.write', 'groupe.user.getcollection.read', 'user.getdetail.read'])]
+    #[Groups(['user.getcollection.read', 'user.write', 'groupe.user.getcollection.read', 'user.getdetail.read','user.patch.write'])]
     private ?string $lastname = null;
 
     #[ORM\Column]
@@ -226,11 +233,5 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if ($this->createdAt == null) {
             $this->setCreatedAt($dateNow);
         }
-    }
-    #[ORM\PrePersist]
-    public function hashmdp()
-    {
-        $password = password_hash($this->plainpassword, PASSWORD_DEFAULT);
-        $this->setPassword($password);
     }
 }
